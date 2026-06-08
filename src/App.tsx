@@ -10,11 +10,14 @@ import { AppointmentPage } from './pages/doctor/AppointmentPage';
 import { LoginPage } from './pages/LoginPage';
 import {Layout} from './components/ui/Layout';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function AppRoutes() {
   const { userRole } = useAuth();
 
   return (
+    <>
     <Routes>
       {!userRole ? (
         <>
@@ -51,6 +54,8 @@ function AppRoutes() {
         </Route>
       )}
     </Routes>
+    <ToastContainer position="top-right" autoClose={5000} />
+    </>    
   );
 }
 

@@ -54,3 +54,15 @@ export interface MedicalCase {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface Specialty {
+    id: string;
+    name: string;
+}
+
+export interface CreateDoctorRequest {
+    firstName: string;
+    lastName: string;
+    specialtyId: string;
+    plannedWeeklyHours: number;
+}
