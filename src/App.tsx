@@ -4,7 +4,7 @@ import { CreateDoctor } from './pages/admin/CreateDoctor';
 import { CreateSchedule } from './pages/admin/CreateSchedule';
 import { RegistrarDashboard } from './pages/registrar/RegistrarDashboard';
 import { CreatePatient } from './pages/registrar/CreatePatient';
-import { SchedulePatient } from './pages/registrar/SchedulePatient';
+import { SchedulePatient } from './pages/registrar/MakeAppointment';
 import { DoctorDashboard } from './pages/doctor/DoctorDashboard';
 import { AppointmentPage } from './pages/doctor/AppointmentPage';
 import { LoginPage } from './pages/LoginPage';

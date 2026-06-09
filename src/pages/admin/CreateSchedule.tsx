@@ -7,21 +7,7 @@ import { Card } from '../../components/ui/Card';
 import { Select } from '../../components/ui/Select';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-toastify';
-
-interface GenerateScheduleRequest {
-  doctorId: string;
-  date: string;
-  startTime: string;
-  endTime: string;
-  durationMinutes: number;
-}
-
-interface Doctor {
-  id: string;
-  firstName: string;
-  lastName: string;
-  specialty: string;
-}
+import { scheduleApi, type Doctor, type GenerateScheduleRequest } from '../../api/scheduleApi';
 
 export function CreateSchedule() {
   const [formData, setFormData] = useState({
@@ -29,33 +15,28 @@ export function CreateSchedule() {
     date: '',
     startTime: '09:00',
     endTime: '17:00',
-    duration: 60
+    durationMinutes: 30,
   });
+
   const [doctors, setDoctors] = useState<Doctor[]>([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingDoctors, setIsLoadingDoctors] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [previewSlots, setPreviewSlots] = useState<number | null>(null);
+
   const { token } = useAuth();
   const navigate = useNavigate();
 
-  // Загрузка списка врачей
+  // Загрузка врачей
   useEffect(() => {
     const fetchDoctors = async () => {
+      if (!token) return;
+
       try {
-        const response = await fetch('https://localhost:7190/api/doctor', {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-
-        if (!response.ok) {
-          throw new Error('Ошибка при загрузке врачей');
-        }
-
-        const data = await response.json();
+        const data = await scheduleApi.getDoctors(token);
         setDoctors(data);
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (error) {
         toast.error('Не удалось загрузить список врачей');
+        console.error(error);
       } finally {
         setIsLoadingDoctors(false);
       }
@@ -64,51 +45,63 @@ export function CreateSchedule() {
     fetchDoctors();
   }, [token]);
 
+  // Preview количества слотов
+  useEffect(() => {
+    const { startTime, endTime, durationMinutes } = formData;
+
+    if (!startTime || !endTime || durationMinutes <= 0) {
+      setPreviewSlots(null);
+      return;
+    }
+
+    const start = new Date(`1970-01-01T${startTime}`);
+    const end = new Date(`1970-01-01T${endTime}`);
+
+    if (end <= start) {
+      setPreviewSlots(null);
+      return;
+    }
+
+    const diffMinutes = (end.getTime() - start.getTime()) / (1000 * 60);
+    const slots = Math.floor(diffMinutes / durationMinutes);
+
+    setPreviewSlots(slots > 0 ? slots : null);
+  }, [formData.startTime, formData.endTime, formData.durationMinutes]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.doctorId || !formData.date) {
-      toast.error('Заполните все обязательные поля');
+      toast.error('Выберите врача и дату');
+      return;
+    }
+
+    if (formData.startTime >= formData.endTime) {
+      toast.error('Время окончания должно быть позже времени начала');
       return;
     }
 
     setIsSubmitting(true);
 
     try {
-      const selectedDoctor = doctors.find(d => d.id === formData.doctorId);
-      if (!selectedDoctor) {
-        throw new Error('Врач не найден');
-      }
-
       const requestData: GenerateScheduleRequest = {
         doctorId: formData.doctorId,
         date: formData.date,
         startTime: formData.startTime,
         endTime: formData.endTime,
-        durationMinutes: formData.duration
+        durationMinutes: formData.durationMinutes,
       };
 
-      const response = await fetch('https://localhost:7190/api/schedule/generate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(requestData)
-      });
+      const result = await scheduleApi.generateSchedule(token!, requestData);
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Ошибка при генерации расписания');
-      }
+      const doctor = doctors.find(d => d.id === formData.doctorId);
 
       toast.success(
-        `Расписание для ${selectedDoctor.lastName} ${selectedDoctor.firstName[0]}. ` +
-        `на ${new Date(formData.date).toLocaleDateString()} создано! ` +
-        `Сгенерировано ${data.generatedCount} слотов`
+        `Расписание успешно создано для ${doctor?.lastName} ${doctor?.firstName[0]}. ` +
+        `на ${new Date(formData.date).toLocaleDateString('ru-RU')}. ` +
+        `Сгенерировано ${result.generatedCount} слотов.`
       );
-      
+
       navigate('/admin/schedules');
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Неизвестная ошибка');
@@ -119,27 +112,30 @@ export function CreateSchedule() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData(prev => ({
+      ...prev,
+      [name]: name === 'durationMinutes' ? Number(value) : value,
+    }));
   };
 
-  const doctorOptions = doctors.map(doctor => ({
-    value: doctor.id,
-    label: `${doctor.lastName} ${doctor.firstName[0]}.`,
-    subLabel: doctor.specialty
+  const doctorOptions = doctors.map(d => ({
+    value: d.id,
+    label: `${d.lastName} ${d.firstName}`,
+    subLabel: d.specialtyName || '',
   }));
 
   const durationOptions = [
+    { value: 15, label: '15 минут' },
     { value: 30, label: '30 минут' },
     { value: 45, label: '45 минут' },
-    { value: 60, label: '1 час' },
-    { value: 90, label: '1,5 часа' },
-    { value: 120, label: '2 часа' }
+    { value: 60, label: '60 минут' },
+    { value: 90, label: '90 минут' },
   ];
 
   return (
     <PageWrapper title="Генерация расписания">
       <Card>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <Select
             label="Врач"
             name="doctorId"
@@ -149,32 +145,30 @@ export function CreateSchedule() {
             required
             disabled={isLoadingDoctors}
           />
-          {isLoadingDoctors && (
-            <div className="text-sm text-gray-500">Загрузка списка врачей...</div>
-          )}
-          
-          <Input 
-            label="Дата приема" 
-            type="date" 
+
+          {isLoadingDoctors && <p className="text-sm text-gray-500">Загрузка врачей...</p>}
+
+          <Input
+            label="Дата"
+            type="date"
             name="date"
-            value={formData.date} 
+            value={formData.date}
             onChange={handleChange}
             min={new Date().toISOString().split('T')[0]}
             required
           />
-          
-          <div className="grid grid-cols-2 gap-4">
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input
-              label="Начало приема"
+              label="Начало приёма"
               type="time"
               name="startTime"
               value={formData.startTime}
               onChange={handleChange}
               required
             />
-            
             <Input
-              label="Окончание приема"
+              label="Окончание приёма"
               type="time"
               name="endTime"
               value={formData.endTime}
@@ -182,33 +176,37 @@ export function CreateSchedule() {
               required
             />
           </div>
-          
+
           <Select
-            label="Длительность приема"
-            name="duration"
-            value={formData.duration.toString()}
-            onChange={(e) => setFormData(prev => ({
-              ...prev,
-              duration: Number(e.target.value)
-            }))}
+            label="Длительность одного приёма"
+            name="durationMinutes"
+            value={formData.durationMinutes.toString()}
+            onChange={handleChange}
             options={durationOptions.map(opt => ({
               value: opt.value.toString(),
-              label: opt.label
+              label: opt.label,
             }))}
             required
           />
-          
+
+          {/* Preview количества слотов */}
+          {previewSlots !== null && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm">
+              Примерное количество слотов: <strong>{previewSlots}</strong>
+            </div>
+          )}
+
           <div className="flex justify-end gap-4 pt-4">
-            <Button 
-              type="button" 
+            <Button
+              type="button"
+              variant="outline"
               onClick={() => navigate('/admin/schedules')}
             >
               Отмена
             </Button>
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               disabled={isSubmitting || !formData.doctorId || !formData.date || isLoadingDoctors}
-              className="min-w-[200px]"
             >
               {isSubmitting ? 'Генерация...' : 'Сгенерировать расписание'}
             </Button>

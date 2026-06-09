@@ -39,3 +39,19 @@ export async function getSpecialties() {
   return response.json();
 }
 
+export async function getAvailabilityBySpecialty(
+  specialtyId: string
+) {
+  const response = await fetch(
+    `${API_URL}/doctors/specialty/${specialtyId}/availability`
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      "Ошибка загрузки доступности врачей"
+    );
+  }
+
+  return response.json();
+}
+

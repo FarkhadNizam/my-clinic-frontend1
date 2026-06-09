@@ -38,6 +38,8 @@ export function CreateDoctor() {
         setSpecialties(data);
       } catch (err) {
         toast.error("Не удалось загрузить специальности");
+        console.log(err);
+        
       }
     };
 
