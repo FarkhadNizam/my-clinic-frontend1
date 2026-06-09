@@ -65,4 +65,5 @@ export interface CreateDoctorRequest {
     lastName: string;
     specialtyId: string;
     plannedWeeklyHours: number;
+    login: string;
 }

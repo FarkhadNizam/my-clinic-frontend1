@@ -15,6 +15,7 @@ interface DoctorFormData {
   lastName: string;
   specialtyId: string;
   plannedWeeklyHours: number;
+  login: string;
 }
 
 export function CreateDoctor() {
@@ -23,7 +24,8 @@ export function CreateDoctor() {
     firstName: '',
     lastName: '',
     specialtyId: '',
-    plannedWeeklyHours: 40
+    plannedWeeklyHours: 40,
+    login: ""
   });
   const [isLoading, setIsLoading] = useState(false);
 
@@ -62,10 +64,17 @@ export function CreateDoctor() {
         firstName: formData.firstName,
         lastName: formData.lastName,
         specialtyId: formData.specialtyId,
-        plannedWeeklyHours: formData.plannedWeeklyHours
+        plannedWeeklyHours: formData.plannedWeeklyHours,
+        login: formData.login
       });
 
-      toast.success(`Врач ${doctor.firstName} ${doctor.lastName} успешно создан`);
+      toast.success(
+  <div>
+    <div>Врач создан.</div>
+    <div>Логин: {doctor.login}</div>
+    <div>Пароль: {doctor.temporaryPassword}</div>
+  </div>
+);
       navigate("/admin");
     } catch (err) {
       const error = err as Error;
@@ -128,6 +137,16 @@ export function CreateDoctor() {
             onChange={handleChange}
             required
           />
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Input
+              label="Логин"
+              name="login"
+              value={formData.login}
+              onChange={handleChange}
+              required
+            />
+          </div>
 
           <div className="flex justify-end gap-4">
             <Button 
