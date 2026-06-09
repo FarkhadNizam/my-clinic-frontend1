@@ -47,7 +47,7 @@ function AppRoutes() {
           {userRole === 'doctor' && (
             <>
               <Route path="/doctor" element={<DoctorDashboard />} />
-              <Route path="/doctor/appointment/:visitId/:patientId" element={<AppointmentPage />} />
+              <Route path="/doctor/appointment/:appointmentId" element={<AppointmentPage />} />
             </>
           )}
           <Route path="*" element={<Navigate to={`/${userRole}`} replace />} />

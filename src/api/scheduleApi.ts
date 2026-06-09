@@ -5,6 +5,7 @@ export interface Doctor {
   firstName: string;
   lastName: string;
   specialtyName?: string;
+  plannedWeeklyHours: number
 }
 
 export interface GenerateScheduleRequest {
