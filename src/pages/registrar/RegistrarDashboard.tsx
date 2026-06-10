@@ -2,7 +2,7 @@
 import { Link } from 'react-router-dom';
 import { PageWrapper } from '../../components/ui/PageWrapper';
 import { Card } from '../../components/ui/Card';
-import { CalendarDaysIcon, UserPlusIcon } from '@heroicons/react/24/outline';
+import { CalendarDaysIcon, UserPlusIcon, ClipboardDocumentListIcon } from '@heroicons/react/24/outline';
 
 export function RegistrarDashboard() {
   return (
@@ -35,6 +35,21 @@ export function RegistrarDashboard() {
               </div>
             </Card>
           </Link>
+
+          {/* НОВАЯ КАРТОЧКА: Список записей */}
+       <Link to="/registrar/appointments" className="group">
+          <Card className="hover:bg-purple-50 transition-colors h-full">
+            <div className="flex flex-col items-center p-6">
+              <div className="bg-purple-100 p-4 rounded-full mb-4 group-hover:bg-purple-200 transition-colors">
+                <ClipboardDocumentListIcon className="h-8 w-8 text-purple-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-1">Записи на прием</h3>
+              <p className="text-sm text-gray-500 text-center">
+                Просмотр и управление записями
+              </p>
+            </div>
+          </Card>
+        </Link>
         </div>
       </PageWrapper>
   );

@@ -82,3 +82,27 @@ export async function addToWaitingList(
 
   return response.json();
 }
+
+export async function getAppointments() {
+  const response = await fetch(
+    `${API_URL}/appointment`
+  );
+
+  return response.json();
+}
+
+export async function cancelAppointment(
+  id: string
+) {
+  const response = await fetch(
+    `${API_URL}/appointment/${id}/cancel`,
+    {
+      method: "PUT"
+    }
+  );
+
+  if (!response.ok)
+    throw new Error(
+      await response.text()
+    );
+}

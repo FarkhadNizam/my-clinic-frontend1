@@ -7,6 +7,7 @@ import { CreatePatient } from './pages/registrar/CreatePatient';
 import { SchedulePatient } from './pages/registrar/MakeAppointment';
 import { DoctorDashboard } from './pages/doctor/DoctorDashboard';
 import { AppointmentPage } from './pages/doctor/AppointmentPage';
+import { AppointmentsPage } from './pages/registrar/AppointmentsPage';
 import { LoginPage } from './pages/LoginPage';
 import {Layout} from './components/ui/Layout';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -42,6 +43,7 @@ function AppRoutes() {
               <Route path="/registrar" element={<RegistrarDashboard />} />
               <Route path="/registrar/create-patient" element={<CreatePatient />} />
               <Route path="/registrar/schedule" element={<SchedulePatient />} />
+              <Route path="/registrar/appointments" element={<AppointmentsPage />} />
             </>
           )}
           {userRole === 'doctor' && (
