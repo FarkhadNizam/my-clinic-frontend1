@@ -6,7 +6,7 @@ export async function getAppointmentVisit(
   appointmentId: string
 ) {
   const response = await fetch(
-    `${API_URL}/appointments/${appointmentId}/visit`
+    `${API_URL}/MedicalVisits/${appointmentId}/visit`
   );
 
   if (!response.ok)
@@ -42,7 +42,7 @@ export async function createVisit(
       await response.text()
     );
 
-  return response.json();
+  return true;
 }
 
 export async function updateVisit(
@@ -54,7 +54,7 @@ export async function updateVisit(
   }
 ) {
   const response = await fetch(
-    `${API_URL}/appointments/${appointmentId}/visit`,
+    `${API_URL}/MedicalVisits/${appointmentId}/visit`,
     {
       method: "PUT",
       headers: {
@@ -70,7 +70,7 @@ export async function updateVisit(
       await response.text()
     );
 
-  return response.json();
+  return true;
 }
 
 export async function searchDiagnoses(
