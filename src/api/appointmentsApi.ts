@@ -106,3 +106,20 @@ export async function cancelAppointment(
       await response.text()
     );
 }
+
+export async function markNoShowAppointment(
+  appointmentId: string
+) {
+  const response = await fetch(
+    `${API_URL}/appointment/${appointmentId}/no-show`,
+    {
+      method: "PUT",
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      await response.text()
+    );
+  }
+}
